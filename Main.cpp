@@ -1,32 +1,41 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
+#include <string>
+
 using namespace std;
 
-void BooksInfo(int number, struct MyStack S);
-
-struct MyStack
+//Структуры
+struct Kroc 
 {
-	struct Node
+	string book;
+	int price;
+	void Out();
+};
+
+struct MyStack 
+{
+	struct Node 
 	{
-		string data;
+		Kroc data;
 		Node* prev;
 	};
 	Node* Top = NULL;
 	int Count;
-	bool Push(string);
-	bool Pop(string&);
+	bool Push(Kroc);
+	bool Pop(Kroc&);
 	void Info();
 };
 
-bool MyStack::Push(string data)
+bool MyStack::Push(Kroc data) 
 {
-	if (!Top)
+	if (!Top) 
 	{
 		Top = new Node;
 		Top->prev = NULL;
 		Count = 1;
 	}
-	else
+	else 
 	{
 		Node* temp;
 		temp = new Node;
@@ -34,44 +43,46 @@ bool MyStack::Push(string data)
 		Top = temp;
 		Count++;
 	}
-	Top->data = data;
+	Top->data = data;//!!!Узкое место
 	return true;
 }
 
-bool MyStack::Pop(string& data)
+bool MyStack::Pop(Kroc& data) 
 {
-	if (!Top)
-	{
-		return false;
-	}
+	if (!Top) return false;
 	Node* temp = Top->prev;
-	data = Top->data;
-	delete Top;
-	Top = temp;
-	Count--;
+	data = Top->data; delete Top;
+	Top = temp; Count--;
 	return true;
 }
 
-void MyStack::Info()
+void MyStack::Info() 
 {
 	if (!Top)
-	{
-		cout << "Stack is empty" << endl;
-	}
-	else
-	{
+		cout << "--->Stack is empty" << endl;
+	else {
 		cout << endl << "Stack info: " << endl;
-		cout << "\tStack size = " << Count << endl;
-		cout << "\tTop data = " << Top->data << endl << endl;
+		cout << "\tStack size =" << Count << endl;
+		Top->data.Out();
+		//cout << "\tTop data =" << Top->data << endl << endl;
 	}
 }
+
+void Kroc::Out() 
+{
+	cout << "Book: " << book << setw(15) << "Price: " << price << endl;
+}
+
+bool GetFile(MyStack&);
+
+ifstream F("Books.txt");
 
 int main()
 {
 	setlocale(LC_ALL, "ru");
-	int key = 0;
+	Kroc k;
 	MyStack S;
-	int n = 10, k;
+	int key = 0;
 	do
 	{
 		cout << "1) Добавить товар в корзину" << endl
@@ -84,26 +95,13 @@ int main()
 		switch (key)
 		{
 		case 1:
-			S.Info();
-			BooksInfo(3, S);
-			S.Info();
-			/*
-			S.Info();
-			for (int i = 1; i <= n; i++)
-			{
-				S.Push(i);
-			}
-			S.Info();
-			while (S.Pop(k))
-			{
-				cout << k << " ";
-			}
-			cout << endl << endl;
+			GetFile(S);
 			S.Info();
 			break;
-			*/
 		case 2:
-
+			S.Pop(k);
+			k.Out();
+			S.Info();
 			break;
 		case 3:
 
@@ -116,26 +114,42 @@ int main()
 			break;
 		}
 	} while (key != 0);
+	F.close();
 }
 
-void BooksInfo(int number, struct MyStack S)
+/*
+int main()
 {
-	ifstream f("Books.txt");
-	string books_info;
-	char check;
-	int count = 0;
-	/*
-	while (f >> check)
+	Kroc k; //k1 = { "Gena",72 }, k2 = { "Kesha",52 };
+	MyStack S;
+	S.Info();
+	//S.Push(k1);
+	//S.Push(k2);
+	GetFile(S);
+	S.Info();
+	cout << "___________________________" << endl;
+	while (S.Pop(k))
+		k.Out();
+	//cout << " " << k;
+	cout << endl;
+	cout << "___________________________" << endl;
+	S.Info();
+}*/
+
+bool GetFile(MyStack& Stack) 
+{
+	if (!F) 
 	{
-		count++;
-	}*/
-	for (int i = 0; i < 5; i++)
-	{
-		if (number - 1 == i)
-		{
-			f >> books_info;
-			S.Push(books_info);
-		}
+		cout << "Cant find file" << endl;
+		return false;
 	}
-	f.close();
+	Kroc k;
+	F >> k.book >> k.price;
+	Stack.Push(k);
+	/*
+	while (F >> k.name >> k.age) //Пока можем извлечь
+	{
+		Stack.Push(k);
+	}*/
+	return true;
 }
