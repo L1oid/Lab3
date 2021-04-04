@@ -1,4 +1,4 @@
-Witcher 924
-Gold 521
-Apothecary 435
-World 241
+Witcher 924 241 4.9
+Gold 521 543 3.6
+Apothecary 435 462 5
+World 241 352 4.1
