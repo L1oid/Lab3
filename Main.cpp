@@ -59,119 +59,36 @@ bool MyStack::Pop(BookInfo& data)
 void MyStack::Info()
 {
 	if (!Top)
-		cout << "--->Stack is empty" << endl;
-	else {
+	{
+		cout << "--->Stack is empty" << endl << endl;
+	}
+	else 
+	{
 		cout << endl << "Stack info: " << endl;
-		cout << "\tStack size =" << Count << endl;
+		cout << "Stack size = " << Count << endl;
 		Top->data.Out();
 	}
 }
 
 void BookInfo::Out()
 {
-	cout << "Book: " << book << "\t" << "Price: " << price << "\t" << "Pages: " << pages << "\t" << "Rating: " << rating << endl;
+	cout << "Last book: " << book << "\t\t" << "Price: " << price << "\t" << "Pages: " << pages << "\t" << "Rating: " << rating << endl << endl;
 }
 
-bool GetFile(MyStack&, string);
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-int main()
-{
-	setlocale(LC_ALL, "ru");
-	BookInfo k;
-	MyStack S;
-	string title;
-	int key = 0;
-	do
-	{
-		cout << "1) Add product" << endl
-			<< "2) Pull out product" << endl
-			<< "3) Empty trash" << endl
-			<< "0) Exit" << endl;
-		cout << endl << "Select an action: ";
-		cin >> key;
-		cout << endl;
-		switch (key)
-		{
-		case 1:
-			cout << "Enter the title of the book: ";
-			cin >> title;
-			GetFile(S, title);
-			S.Info();
-			break;
-		case 2:
-			cout << "Enter the title of the book: ";
-			cin >> title;
-			S.Pop(k);
-			k.Out();
-			S.Info();
-			break;
-		case 3:
-
-			break;
-		default:
-			if (key != 0)
-			{
-				cout << "LOL !" << endl << endl;
-			}
-			break;
-		}
-	} while (key != 0);
-}
-
-bool GetFile(MyStack& Stack, string title)
-{
-	ifstream F("Books.txt");
-	string check;
-	if (!F)
-	{
-		cout << "Cant find file" << endl;
-		return false;
-	}
-	BookInfo k;
-	while (F >> check)
-	{
-		if (check == title)
-		{
-			cout << "Book finded!" << endl << endl;
-			k.book = check;
-			F >> k.price >> k.pages >> k.rating;
-			Stack.Push(k);
-			F.close();
-		}
-	}
-	if (check != title)
-	{
-		cout << endl << "Book not finded!" << endl << endl;
-		F.close();
-	}
-	return true;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
 struct Product
 {
 	int volume;
 	double price;
 	void Out();
 };
+
 void Product::Out()
 {
-	cout << "\nVolume = " << volume << ' ' << "Price = " << price << endl;
+	cout << "Volume = " << volume << ' ' << "Price = " << price << endl << endl;
 }
 
 struct MyQueue
@@ -231,43 +148,37 @@ bool MyQueue::Pop(Product& data)
 
 void MyQueue::Info()
 {
-	if (!First) cout << "--->Queue is empty" << endl;
+	if (!First) cout << endl << "--->Queue is empty" << endl << endl;
 	else
 	{
-		cout << endl << "Queue info: " << endl;
-		cout << "\tQueue size = " << Count << endl;
-		//cout << "YeFirst data" << First->data << endl << endl;
+		cout << "Queue info: " << endl;
+		cout << "Queue size = " << Count << endl;
 		First->data.Out();
 
-		cout << "\nRemain = " << remain << "\nProfit = " << profit;
+		cout << "Remain = " << remain << "\nProfit = " << profit << endl << endl;
 	}
 }
 
 bool MyQueue::Sell(int volume, double price, bool fsell)
 {
-	//cout << "\nDebugging:\n" << volume << endl;
 	Product temp;
-
 	if (volume == 0) return true;
-
-
 	if (price < First->data.price && fsell == true)
 	{
-		cout << "\nError >> price too low\n";
+		cout << endl << "Price too low !" << endl << endl;
 		return false;
 	}
 	else
 	{
 		if (volume > remain)
 		{
-			cout << "\nError >> not enough product\n";
+			cout << endl << "Not enough product !" << endl << endl;
 			return false;
 		}
 		if (First->data.volume > volume)
 		{
 			First->data.volume -= volume;
 			profit += (price - First->data.price) * volume;
-			//profit += price * volume;
 			remain -= volume;
 			return true;
 		}
@@ -281,29 +192,163 @@ bool MyQueue::Sell(int volume, double price, bool fsell)
 	}
 }
 
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------
 
-
+bool GetFile(MyStack&, BookInfo&, string);
+void PullOut(MyStack&, BookInfo&, string, int);
 
 int main()
 {
-	int n = 10;
-	Product k;
-	Product k1 = { 100, 10.0 }, k2 = { 10, 20.0 };
+	setlocale(LC_ALL, "ru");
+	BookInfo k;
+	Product k1, k11, k22;
+	MyStack S;
 	MyQueue Q;
+	string title;
+	int key2 = 0, key1 = 0, key = 0, price, volume;
+	do
+	{
+		cout << "1) Stack" << endl
+			<< "2) Queue" << endl
+			<< "0) Exit" << endl;
+		cout << endl << "Select an action: ";
+		cin >> key;
+		cout << endl;
+		switch (key)
+		{
+		case 1:
+			do
+			{
+				cout << "1) Add product" << endl
+					<< "2) Pull out product" << endl
+					<< "3) Empty trash" << endl
+					<< "0) Exit" << endl;
+				cout << endl << "Select an action: ";
+				cin >> key1;
+				cout << endl;
+				switch (key1)
+				{
+				case 1:
+					cout << "Enter the title of the book: ";
+					cin >> title;
+					GetFile(S, k, title);
+					S.Info();
+					break;
+				case 2:
+					cout << "Enter the title of the book: ";
+					cin >> title;
+					PullOut(S, k, title, S.Count);
+					S.Info();
+					break;
+				case 3:
+					while (S.Pop(k))
+					{
+						k.Out();
+					}
+					S.Info();
+					break;
+				default:
+					if (key1 != 0)
+					{
+						cout << "There is no such action !" << endl << endl;
+					}
+					break;
+				}
+			} while (key1 != 0);
+			break;
+		case 2:
+			do
+			{
+				cout << "1) Goods arriving" << endl
+					<< "2) Goods selling" << endl
+					<< "3) Product Report" << endl
+					<< "0) Exit" << endl;
+				cout << endl << "Select an action: ";
+				cin >> key2;
+				cout << endl;
+				switch (key2)
+				{
+				case 1:
+					cout << "Enter the volume: ";
+					cin >> k1.volume;
+					cout << endl << "Enter the price: ";
+					cin >> k1.price;
+					cout << endl;
+					Q.Push(k1);
+					Q.Info();
+					break;
+				case 2:
+					cout << "Enter the volume: ";
+					cin >> volume;
+					cout << endl << "Enter the price: ";
+					cin >> price;
+					Q.Sell(volume, price, true);
+					Q.Info();
+					break;
+				case 3:
+					Q.Info();
+					break;
+				default:
+					if (key2 != 0)
+					{
+						cout << "There is no such action !" << endl << endl;
+					}
+					break;
+				}
+			} while (key2 != 0);
+			break;
+		default:
+			if (key != 0)
+			{
+				cout << "There is no such action !" << endl << endl;
+			}
+			break;
+		}
+	} while (key != 0);
+}
 
-	Q.Info();
-	Q.Push(k1);
-	Q.Push(k2);
-	Q.Info();
-	cout << "\n__________________\n";
+bool GetFile(MyStack& Stack, BookInfo& k, string title)
+{
+	ifstream F("Books.txt");
+	string check;
+	if (!F)
+	{
+		cout << "Cant find file" << endl;
+		return false;
+	}
+	while (F >> check)
+	{
+		if (check == title)
+		{
+			cout << endl << "Book finded!" << endl;
+			k.book = check;
+			F >> k.price >> k.pages >> k.rating;
+			Stack.Push(k);
+			F.close();
+		}
+	}
+	if (check != title)
+	{
+		cout << endl << "Book not finded!" << endl << endl;
+		F.close();
+	}
+	return true;
+}
 
-	Q.Sell(101, 15, true);
-	Q.Info();
-
-	cout << "\n__________________\n";
-	while (Q.Pop(k)) k.Out();
-	cout << endl;
-	Q.Info();
-
-	return 0;
-}*/
+void PullOut(MyStack& Stack, BookInfo& k, string title, int count)
+{
+	for (int i = 0; i < count && k.book != title; i++)
+	{
+		Stack.Pop(k);
+		if (k.book == title)
+		{
+			cout << "Book finded!" << endl << endl;
+		}
+	}
+	if (k.book != title)
+	{
+		cout << endl << "Book not finded!" << endl << endl;
+	}
+}
