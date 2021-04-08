@@ -60,7 +60,7 @@ void MyStack::Info()
 {
 	if (!Top)
 	{
-		cout << "--->Stack is empty" << endl << endl;
+		cout << "Stack is empty" << endl << endl;
 	}
 	else 
 	{
@@ -98,7 +98,8 @@ struct MyQueue
 		Product data;
 		Node* next;
 	};
-	int remain;
+	int remain = 0;
+	double cost = 0;
 	double profit = 0;
 	Node* First = NULL;
 	int Count = 0;
@@ -117,6 +118,10 @@ bool MyQueue::Push(Product data)
 		First->data = data;
 		Count = 1;
 		remain = First->data.volume;
+		for (int i = 0; i < data.volume; i++)
+		{
+			cost += First->data.price;
+		}
 	}
 	else
 	{
@@ -126,6 +131,10 @@ bool MyQueue::Push(Product data)
 		temp->next = new Node;
 		temp->next->data = data;
 		remain += temp->next->data.volume;
+		for (int i = 0; i < data.volume; i++)
+		{
+			cost += temp->next->data.price;
+		}
 		temp->next->next = NULL;
 		Count++;
 	}
@@ -138,6 +147,10 @@ bool MyQueue::Pop(Product& data)
 	Node* temp = First->next;
 	data = First->data;
 	remain -= First->data.volume;
+	for (int i = 0; i < data.volume; i++)
+	{
+		cost -= First->data.price;
+	}
 	delete First;
 	First = temp;
 	Count--;
@@ -148,24 +161,28 @@ bool MyQueue::Pop(Product& data)
 
 void MyQueue::Info()
 {
-	if (!First) cout << endl << "--->Queue is empty" << endl << endl;
+	if (!First) cout << "Queue is empty" << endl << endl;
 	else
 	{
-		cout << "Queue info: " << endl;
+		cout << endl << "Queue info: " << endl;
 		cout << "Queue size = " << Count << endl;
 		First->data.Out();
-
-		cout << "Remain = " << remain << "\nProfit = " << profit << endl << endl;
 	}
+	cout << "Total cost = " << cost << endl << "Remain = " << remain << endl << "Profit = " << profit << endl << endl;
 }
 
 bool MyQueue::Sell(int volume, double price, bool fsell)
 {
 	Product temp;
 	if (volume == 0) return true;
+	if (Count == NULL)
+	{
+		cout << "Not enough product !" << endl << endl;
+		return true;
+	}
 	if (price < First->data.price && fsell == true)
 	{
-		cout << endl << "Price too low !" << endl << endl;
+		cout << endl << "Price too low !" << endl;
 		return false;
 	}
 	else
@@ -175,16 +192,21 @@ bool MyQueue::Sell(int volume, double price, bool fsell)
 			cout << endl << "Not enough product !" << endl << endl;
 			return false;
 		}
-		if (First->data.volume > volume)
+		if (First->data.volume > volume || First->data.volume == volume)
 		{
 			First->data.volume -= volume;
 			profit += (price - First->data.price) * volume;
 			remain -= volume;
+			for (int i = 0; i < volume; i++)
+			{
+				cost -= First->data.price;
+			}
+			Pop(temp);
 			return true;
 		}
 		else
 		{
-			profit += (price - First->data.price) * volume;
+			profit += (price - First->data.price) * First->data.volume;
 			volume -= First->data.volume;
 			Pop(temp);
 			Sell(volume, price, false);
@@ -196,8 +218,9 @@ bool MyQueue::Sell(int volume, double price, bool fsell)
 //---------------------------------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-bool GetFile(MyStack&, BookInfo&, string);
-void PullOut(MyStack&, BookInfo&, string, int);
+bool GetFile(MyStack&, BookInfo&);
+void GetBook(MyStack&, BookInfo&);
+bool RemoveBook(MyStack& sMain, BookInfo& k, string);
 
 int main()
 {
@@ -205,9 +228,11 @@ int main()
 	BookInfo k;
 	Product k1, k11, k22;
 	MyStack S;
+	MyStack Temp;
 	MyQueue Q;
 	string title;
 	int key2 = 0, key1 = 0, key = 0, price, volume;
+	GetFile(S, k);
 	do
 	{
 		cout << "1) Stack" << endl
@@ -223,7 +248,8 @@ int main()
 			{
 				cout << "1) Add product" << endl
 					<< "2) Pull out product" << endl
-					<< "3) Empty trash" << endl
+					<< "3) Empty Ñart" << endl
+					<< "4) Ñart Info" << endl
 					<< "0) Exit" << endl;
 				cout << endl << "Select an action: ";
 				cin >> key1;
@@ -231,15 +257,13 @@ int main()
 				switch (key1)
 				{
 				case 1:
-					cout << "Enter the title of the book: ";
-					cin >> title;
-					GetFile(S, k, title);
+					GetBook(S, k);
 					S.Info();
 					break;
 				case 2:
 					cout << "Enter the title of the book: ";
 					cin >> title;
-					PullOut(S, k, title, S.Count);
+					RemoveBook(S, k, title);
 					S.Info();
 					break;
 				case 3:
@@ -247,6 +271,9 @@ int main()
 					{
 						k.Out();
 					}
+					S.Info();
+					break;
+				case 4:
 					S.Info();
 					break;
 				default:
@@ -275,7 +302,6 @@ int main()
 					cin >> k1.volume;
 					cout << endl << "Enter the price: ";
 					cin >> k1.price;
-					cout << endl;
 					Q.Push(k1);
 					Q.Info();
 					break;
@@ -284,6 +310,7 @@ int main()
 					cin >> volume;
 					cout << endl << "Enter the price: ";
 					cin >> price;
+					cout << endl;
 					Q.Sell(volume, price, true);
 					Q.Info();
 					break;
@@ -309,46 +336,79 @@ int main()
 	} while (key != 0);
 }
 
-bool GetFile(MyStack& Stack, BookInfo& k, string title)
+bool GetFile(MyStack& Stack, BookInfo& k)
 {
 	ifstream F("Books.txt");
-	string check;
 	if (!F)
 	{
 		cout << "Cant find file" << endl;
 		return false;
 	}
-	while (F >> check)
+	while (F >> k.book >> k.price >> k.pages >> k.rating)
 	{
-		if (check == title)
-		{
-			cout << endl << "Book finded!" << endl;
-			k.book = check;
-			F >> k.price >> k.pages >> k.rating;
-			Stack.Push(k);
-			F.close();
-		}
+		Stack.Push(k);
 	}
-	if (check != title)
-	{
-		cout << endl << "Book not finded!" << endl << endl;
-		F.close();
-	}
+	F.close();
 	return true;
 }
 
-void PullOut(MyStack& Stack, BookInfo& k, string title, int count)
+void GetBook(MyStack& Stack, BookInfo& k)
 {
-	for (int i = 0; i < count && k.book != title; i++)
+	cout << "Enter the title: ";
+	cin >> k.book;
+	cout << endl;
+	cout << "Enter the price: ";
+	cin >> k.price;
+	cout << endl;
+	cout << "Enter the amount pages: ";
+	cin >> k.pages;
+	cout << endl;
+	cout << "Enter the rating: ";
+	cin >> k.rating;
+	cout << endl;
+	Stack.Push(k);
+}
+
+bool RemoveBook(MyStack& sMain, BookInfo& k, string title) 
+{
+	MyStack sTemp;
+	bool stopFind = false, find = false;
+	while (stopFind == false) 
 	{
-		Stack.Pop(k);
-		if (k.book == title)
+		sTemp.Push(sMain.Top->data);
+		sMain.Pop(k);
+		if (sTemp.Top->data.book == title)
 		{
-			cout << "Book finded!" << endl << endl;
+			find = true;
+			stopFind = true;
+			break;
+		}
+		if (sMain.Top == NULL) 
+		{
+			stopFind = true;
+			break;
 		}
 	}
-	if (k.book != title)
+	if (find == true) 
 	{
-		cout << endl << "Book not finded!" << endl << endl;
+		sTemp.Pop(k);
+		cout << endl << "Succesfuly remove " << title << " named object!" << endl;
 	}
+	else 
+	{
+		cout << endl << "Can't find " << title << " named object!" << endl;
+	}
+	stopFind = false;
+	while (stopFind == false) 
+	{
+		if (find != true) 
+		{
+			sMain.Push(sTemp.Top->data);
+			sTemp.Pop(k);
+		}
+		find = false;
+		if (sTemp.Top == NULL) stopFind = true;
+	}
+	find = false;
+	return true;
 }
