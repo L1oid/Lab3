@@ -201,7 +201,10 @@ bool MyQueue::Sell(int volume, double price, bool fsell)
 			{
 				cost -= First->data.price;
 			}
-			Pop(temp);
+			if (First->data.volume == 0)
+			{
+				Pop(temp);
+			}
 			return true;
 		}
 		else
@@ -281,6 +284,11 @@ int main()
 					{
 						cout << "There is no such action !" << endl << endl;
 					}
+					if (key1 == 0)
+					{
+						while (S.Pop(k));
+						S.Info();
+					}
 					break;
 				}
 			} while (key1 != 0);
@@ -321,6 +329,11 @@ int main()
 					if (key2 != 0)
 					{
 						cout << "There is no such action !" << endl << endl;
+					}
+					if (key2 == 0)
+					{
+						while (Q.Pop(k1));
+						Q.Info();
 					}
 					break;
 				}
